@@ -3,7 +3,7 @@
 PREFIX_FILENAME=js_version_prefix.php 
 SARON_URI=saron/
 CSS_URI=app/css/
-JS_URI=saron/
+JS_URI=app/js/
 DEV_ROOT=/Users/peter/Dropbox/Peter/dev/project-saron/
 DIST_URI=dist/
 PREFIX_FILE_URI=app/util/
