@@ -1,9 +1,0 @@
-#config.props
-#Fri Mar 10 21:43:37 CET 2023
-PREFIX_FILENAME=js_version_prefix.php 
-SARON_URI=saron/
-CSS_URI=app/css/
-JS_URI=app/js/
-DEV_ROOT=/Users/peter/Dropbox/Peter/dev/project-saron/
-DIST_URI=dist/
-PREFIX_FILE_URI=app/util/
