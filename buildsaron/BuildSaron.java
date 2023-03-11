@@ -89,9 +89,10 @@ public class BuildSaron implements Constants {
         sb.append(versionPrefix);
         sb.append("\");");
 
-              
         File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
-        phpFile.delete();
+        if(phpFile.exists()){
+            phpFile.delete();
+        }      
         try (OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(phpFile), StandardCharsets.UTF_8)) {
             fstream.write(sb.toString());
         }
@@ -149,6 +150,16 @@ public class BuildSaron implements Constants {
             String saron_uri = props.getProperty(SARON_URI);
             String dev_root = props.getProperty(DEV_ROOT);
             String css_uri = props.getProperty(CSS_URI);
+            String prefix_file_uri = props.getProperty(PREFIX_FILE_URI);
+            String prefix_filename = props.getProperty(PREFIX_FILENAME);
+
+            File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
+            if(phpFile.delete())
+                System.out.println("DELTED: " + phpFile);
+            else
+                System.out.println("ERROR DELTE: " + phpFile);
+
+            System.out.println();
 
             bs.walk(props, dev_root + saron_uri + js_uri );
             bs.walk(props, dev_root + saron_uri + css_uri );
