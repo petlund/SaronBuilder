@@ -10,10 +10,13 @@ package buildsaron;
  * @author peter
  */
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Properties;
 
 
 /**
@@ -28,28 +31,7 @@ import java.nio.file.StandardCopyOption;
 
  */
 
-public class BuildSaron {
-    //Absoule path to dev root folder
-    private static final String DEV_ROOT = "/Users/peter/Dropbox/Peter/dev/project-saron/";
-    
-    //Same as in config.php
-    private static final String PREFIX_FILE_URI = "app/util/";
-    
-    //The name of the file this program generate. Look at /app/util/distPath.php 
-    private static final String PREFIX_FILENAME = "js_version_prefix.php";    
-    
-    //Same as in config.php
-    private static final String SARON_URI = "saron/";
-
-    //Same as in config.php
-    private static final String JS_URI = "app/js/";
-
-    //Same as in config.php
-    private static final String CSS_URI = "app/css/";
-
-    //Same as in config.php
-    private static final String DIST_URI = "dist";
-
+public class BuildSaron implements Constants {
     private final String versionPrefix; 
     private final String PREFIX = "VER_";
     
@@ -58,8 +40,9 @@ public class BuildSaron {
     }
     
     // walk through the file-tree
-    public void walk( String path ) throws IOException {
-        
+    public void walk(Properties props, String path ) throws IOException {
+        String dist_uri = props.getProperty(DIST_URI);
+
         File dir = new File( path );
 
         File[] list = dir.listFiles();
@@ -69,51 +52,62 @@ public class BuildSaron {
         
         boolean hasFiles = hasFiles(dir);
         if(hasFiles)
-            reCreateDist(dir);        
+            reCreateDist(props, dir);        
         
 
         for(File f : list) {
             if (f.isDirectory()) {
-                if(!f.getName().endsWith(DIST_URI)){
-                    reCreateDist(f);
-                    walk(f.getAbsolutePath());                    
+                if(!f.getName().endsWith(dist_uri)){
+                    reCreateDist(props, f);
+                    walk(props, f.getAbsolutePath());                    
                 }
                 else{
                 }
             }
             else {
-                int endIndex = f.getAbsoluteFile().toString().length() - f.getName().length();
-                String pathString = f.getAbsoluteFile().toString().substring(0,endIndex) +  DIST_URI + "/" + versionPrefix + f.getName();  
-                Files.copy(f.toPath(), new File(pathString).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println( "Copy:" + f.getAbsoluteFile()  + " ---> " + pathString);
+                if(f.getName().endsWith(".js") || f.getName().endsWith(".css")){
+                    int endIndex = f.getAbsoluteFile().toString().length() - f.getName().length();
+                    String pathString = f.getAbsoluteFile().toString().substring(0,endIndex) +  dist_uri + "/" + versionPrefix + f.getName();                  
+                    Files.copy(f.toPath(), new File(pathString).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println( "Copy:" + f.getAbsoluteFile()  + " ---> " + pathString);
+                }
             }
         }
-        printPhpPrefixFile();
     }
     
     
     
-    private void printPhpPrefixFile() throws IOException{
+    private void printPhpPrefixFile(Properties props) throws IOException{
+        String dev_root = props.getProperty(DEV_ROOT);
+        String prefix_file_uri = props.getProperty(PREFIX_FILE_URI);
+        String prefix_filename = props.getProperty(PREFIX_FILENAME);
+        String saron_uri = props.getProperty(SARON_URI);
+
         StringBuilder sb = new StringBuilder();
         sb.append("<?php\n"); 
         sb.append("define(\"JS_VERSION_PREFIX\", \"");
         sb.append(versionPrefix);
         sb.append("\");");
-        
-        try (FileWriter phpFile = new FileWriter(DEV_ROOT + SARON_URI + PREFIX_FILE_URI + PREFIX_FILENAME)) {
-            phpFile.write(sb.toString());
-        }        
-        
+
+              
+        File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
+        phpFile.delete();
+        try (OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(phpFile), StandardCharsets.UTF_8)) {
+            fstream.write(sb.toString());
+        }
     }
     
     
     
-    private void reCreateDist(File f) throws IOException{
-        File distFile = new File(f.toString() + "/" + DIST_URI);
+    private void reCreateDist(Properties props, File f) throws IOException{
+        String dist_uri = props.getProperty(DIST_URI);
+
+        File distFile = new File(f.toString() + "/" + dist_uri);
         if(distFile.exists()){
             for(File file: distFile.listFiles()) 
                 if (!file.isDirectory()) 
                     file.delete();
+            
             distFile.delete();
         }
         distFile.mkdir();
@@ -125,18 +119,6 @@ public class BuildSaron {
         return PREFIX + (int)(Math.random()* 9000 + 1000) + "_";
     }
 
-    
-    
-    private void create(){
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?php\r\n");
-        sb.append("define(\"JS_VERSION_PREFIX\", \"");
-        sb.append(getVersion());
-        sb.append("\");");
-        
-        sb.toString();
-        
-    }
 
 
     private boolean hasFiles(File dir){
@@ -149,8 +131,9 @@ public class BuildSaron {
     }
     
     
-    private void addDistDirectoryIfNotExist(File f){
-        File distFile = new File(f.toString() + "/" + DIST_URI);
+    private void addDistDirectoryIfNotExist(Properties props, File f){
+        String dist_uri = props.getProperty(DIST_URI);
+        File distFile = new File(f.toString() + "/" + dist_uri);
         if(!distFile.exists())
             distFile.mkdir();
     }
@@ -160,8 +143,17 @@ public class BuildSaron {
         BuildSaron bs = new BuildSaron();
         System.out.println("Start");
         try{
-            bs.walk(DEV_ROOT + SARON_URI + JS_URI );
-            bs.walk(DEV_ROOT + SARON_URI + CSS_URI );
+            SaronProperties sProp = new SaronProperties();
+            Properties props = sProp.getPropertiesValue();
+            String js_uri = props.getProperty(JS_URI);
+            String saron_uri = props.getProperty(SARON_URI);
+            String dev_root = props.getProperty(DEV_ROOT);
+            String css_uri = props.getProperty(CSS_URI);
+
+            bs.walk(props, dev_root + saron_uri + js_uri );
+            bs.walk(props, dev_root + saron_uri + css_uri );
+            bs.printPhpPrefixFile(props);
+
         }
         catch(IOException e){
             System.out.println(e.toString());
