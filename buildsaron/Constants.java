@@ -15,5 +15,6 @@ public interface Constants {
     static final String SARON_URI = "SARON_URI"; 
     static final String JS_URI = "JS_URI";
     static final String CSS_URI = "CSS_URI"; 
-    static final String DIST_URI = "DIST_URI";    
+    static final String DIST_URI = "DIST_URI";   
+    static final String LOCAL_WEB_ROOT = "LOCAL_WEB_ROOT";   
 }

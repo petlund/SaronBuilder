@@ -33,6 +33,7 @@ public class SaronProperties implements Constants{
             props.setProperty(JS_URI, "See config.php in saron");
             props.setProperty(CSS_URI, "See config.php in saron");
             props.setProperty(DIST_URI, "See config.php in saron");
+            props.setProperty(LOCAL_WEB_ROOT, "See config.php in saron");
     
             FileOutputStream fos = new FileOutputStream(file);
             props.store(fos, file.getName());

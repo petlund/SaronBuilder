@@ -50,8 +50,7 @@ public class BuildSaron implements Constants {
             return;
         
         
-        boolean hasFiles = hasFiles(dir);
-        if(hasFiles)
+        if(hasPrefixableFiles(dir))
             reCreateDist(props, dir);        
         
 
@@ -65,19 +64,22 @@ public class BuildSaron implements Constants {
                 }
             }
             else {
-                if(f.getName().endsWith(".js") || f.getName().endsWith(".css")){
+                if(isPrefixableFile(f)){
                     int endIndex = f.getAbsoluteFile().toString().length() - f.getName().length();
                     String pathString = f.getAbsoluteFile().toString().substring(0,endIndex) +  dist_uri + "/" + versionPrefix + f.getName();                  
                     Files.copy(f.toPath(), new File(pathString).toPath(), StandardCopyOption.REPLACE_EXISTING);
                     System.out.println( "Copy:" + f.getAbsoluteFile()  + " ---> " + pathString);
                 }
+                else
+                    System.out.println("Ignore: " + f.getName());
+
             }
         }
     }
     
     
     
-    private void printPhpPrefixFile(Properties props) throws IOException{
+    private void printPhpPrefixFile(Properties props, File phpFile) throws IOException{
         String dev_root = props.getProperty(DEV_ROOT);
         String prefix_file_uri = props.getProperty(PREFIX_FILE_URI);
         String prefix_filename = props.getProperty(PREFIX_FILENAME);
@@ -89,13 +91,26 @@ public class BuildSaron implements Constants {
         sb.append(versionPrefix);
         sb.append("\");");
 
-        File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
-        if(phpFile.exists()){
-            phpFile.delete();
-        }      
+//        File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
+//        if(phpFile.exists()){
+//            phpFile.delete();
+//        }      
+//        int i=0;
+//        boolean exists = phpFile.exists();
+//        while(!phpFile.exists() && i > 10){
+//            try{
+//                i++;
+//                Thread.sleep(500);
+//            }
+//            catch(InterruptedException e){
+//                i=1000;
+//                      
+//            }
+//        }
         try (OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(phpFile), StandardCharsets.UTF_8)) {
             fstream.write(sb.toString());
         }
+        
     }
     
     
@@ -120,25 +135,28 @@ public class BuildSaron implements Constants {
         return PREFIX + (int)(Math.random()* 9000 + 1000) + "_";
     }
 
+    
+    
+    private boolean isPrefixableFile(File f){
+        if(f.getName().endsWith(".js"))
+            return true;
+        if(f.getName().endsWith(".css"))
+            return true;
+        return false;
+    }
+    
 
 
-    private boolean hasFiles(File dir){
+    private boolean hasPrefixableFiles(File dir){
         File[] list = dir.listFiles();
         for(File f : list) 
-            if (!f.isDirectory())
+            if (isPrefixableFile(f))
                 return true;
         
         return false;
     }
     
     
-    private void addDistDirectoryIfNotExist(Properties props, File f){
-        String dist_uri = props.getProperty(DIST_URI);
-        File distFile = new File(f.toString() + "/" + dist_uri);
-        if(!distFile.exists())
-            distFile.mkdir();
-    }
-
     
     public static void main(String[] args) {
         BuildSaron bs = new BuildSaron();
@@ -156,14 +174,10 @@ public class BuildSaron implements Constants {
             File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
             if(phpFile.delete())
                 System.out.println("DELTED: " + phpFile);
-            else
-                System.out.println("ERROR DELTE: " + phpFile);
-
-            System.out.println();
 
             bs.walk(props, dev_root + saron_uri + js_uri );
             bs.walk(props, dev_root + saron_uri + css_uri );
-            bs.printPhpPrefixFile(props);
+            bs.printPhpPrefixFile(props, phpFile);
 
         }
         catch(IOException e){
