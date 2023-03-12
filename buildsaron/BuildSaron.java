@@ -91,22 +91,6 @@ public class BuildSaron implements Constants {
         sb.append(versionPrefix);
         sb.append("\");");
 
-//        File phpFile = new File(dev_root + saron_uri + prefix_file_uri + prefix_filename);
-//        if(phpFile.exists()){
-//            phpFile.delete();
-//        }      
-//        int i=0;
-//        boolean exists = phpFile.exists();
-//        while(!phpFile.exists() && i > 10){
-//            try{
-//                i++;
-//                Thread.sleep(500);
-//            }
-//            catch(InterruptedException e){
-//                i=1000;
-//                      
-//            }
-//        }
         try (OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(phpFile), StandardCharsets.UTF_8)) {
             fstream.write(sb.toString());
         }
