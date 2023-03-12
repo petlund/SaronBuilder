@@ -20,7 +20,7 @@ import java.util.Properties;
 
 
 /**
- * This program generate a fileprefix on every javascriptfile used in saron/app and copy all javascript files to a subdirectory /dist
+ * This program generate a fileprefix on every javascriptfile used in saron/app and copy all prefixed javascript files to a subdirectory /dist
  * It also generate a PHP file including a definition of the prefix constant. This definition is used by the browser to find js-files
  * This mechanism is used to avoid using old javascript in the application
  * 
