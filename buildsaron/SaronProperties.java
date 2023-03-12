@@ -17,7 +17,7 @@ public class SaronProperties implements Constants{
     
     public Properties getPropertiesValue() throws IOException{
         Properties props = new Properties();
-        File file = new File("config.props2");
+        File file = new File("config.props");
 
         
         if(file.exists()){
